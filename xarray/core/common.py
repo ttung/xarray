@@ -125,7 +125,8 @@ class AbstractArray(ImplementsArrayReduce, formatting.ReprMixin):
         int or tuple of int
             Axis number or numbers corresponding to the given dimensions.
         """
-        if isinstance(dim, basestring):
+        from .dataarray import DimensionBase
+        if DimensionBase.is_dimension_base(dim):
             return self._get_axis_num(dim)
         else:
             return tuple(self._get_axis_num(d) for d in dim)

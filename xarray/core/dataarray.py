@@ -25,6 +25,12 @@ from .variable import (
     assert_unique_multiindex_level_names)
 
 
+class DimensionBase(object):
+    @staticmethod
+    def is_dimension_base(obj):
+        return isinstance(obj, basestring) or isinstance(obj, DimensionBase)
+
+
 def _infer_coords_and_dims(shape, coords, dims):
     """All the logic for creating a new DataArray"""
 
@@ -34,7 +40,7 @@ def _infer_coords_and_dims(shape, coords, dims):
                          'which does not match the %s dimensions of the '
                          'data' % (len(coords), len(shape)))
 
-    if isinstance(dims, basestring):
+    if DimensionBase.is_dimension_base(dims):
         dims = (dims,)
 
     if dims is None:
@@ -54,7 +60,7 @@ def _infer_coords_and_dims(shape, coords, dims):
         dims = tuple(dims)
     else:
         for d in dims:
-            if not isinstance(d, basestring):
+            if not DimensionBase.is_dimension_base(d):
                 raise TypeError('dimension %s is not a string' % d)
 
     new_coords = OrderedDict()
@@ -467,14 +473,14 @@ class DataArray(AbstractArray, DataWithCoords):
         return self._replace_maybe_drop_dims(var, name=key)
 
     def __getitem__(self, key):
-        if isinstance(key, basestring):
+        if DimensionBase.is_dimension_base(key):
             return self._getitem_coord(key)
         else:
             # xarray-style array indexing
             return self.isel(indexers=self._item_key_to_dict(key))
 
     def __setitem__(self, key, value):
-        if isinstance(key, basestring):
+        if DimensionBase.is_dimension_base(key):
             self.coords[key] = value
         else:
             # Coordinates in key, value and self[key] should be consistent.
